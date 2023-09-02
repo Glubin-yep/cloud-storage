@@ -1,26 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserEntity } from './entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
-  }
+  constructor(
+    @InjectRepository(UserEntity)
+    private repository: Repository<UserEntity>
+  ){}
 
-  findAll() {
-    return `This action returns all users`;
-  }
+    async findByEmail(email: string){
+      return this.repository.findOneBy({
+        email,
+      })
+    }
+  
+    async findById(id: number){
+      return this.repository.findOneBy({
+        id,
+      })
+    }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+    async create(dto: CreateUserDto){
+      const hashedPassword = await bcrypt.hash(dto.password, 10);
+      const user = this.repository.create({ ...dto, password: hashedPassword });
+      return this.repository.save(user);
+    }
 }
