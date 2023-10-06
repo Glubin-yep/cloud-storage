@@ -1,35 +1,55 @@
 import { Injectable } from '@nestjs/common';
-import { CreateFileDto } from './dto/create-file.dto';
-import { UpdateFileDto } from './dto/update-file.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FileEntity } from './entities/file.entity';
+import { FileEntity, FileType } from './entities/file.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
 export class FilesService {
   constructor(
     @InjectRepository(FileEntity)
-    private repository: Repository<FileEntity>
-  ){}
+    private repository: Repository<FileEntity>,
+  ) {}
 
-
-  create(createFileDto: CreateFileDto) {
-    return 'This action adds a new file';
+  async create(file: Express.Multer.File, userId: number) {
+    return this.repository.save({
+      filename: file.filename,
+      originalName: file.originalname,
+      size: file.size,
+      mimetype: file.mimetype,
+      user: { id: userId },
+    });
   }
 
-  findAll() {
-    return this.repository.find();
+  async findAll(userId: number, fileType: FileType) {
+    const qb = this.repository.createQueryBuilder('file');
+
+    qb.where('file.userId = :userId', { userId });
+
+    if (fileType === FileType.PHOTOS) {
+      qb.andWhere('file.mimetype ILIKE :type', { type: '%image%' });
+    }
+
+    if (fileType === FileType.TRASH) {
+      qb.withDeleted().andWhere('file.deletedAt IS NOT NULL');
+    }
+
+    return qb.getMany();
   }
 
-  findOne(id: number) {
+  async findOne(id: number) {
     return `This action returns a #${id} file`;
   }
 
-  update(id: number, updateFileDto: UpdateFileDto) {
-    return `This action updates a #${id} file`;
-  }
+  async remove(userId: number, ids: string) {
+    const idsArray = ids.split(',');
 
-  remove(id: number) {
-    return `This action removes a #${id} file`;
+    const qb = this.repository.createQueryBuilder('file');
+
+    qb.where('id IN (:...ids) AND userId = :userId', {
+      ids: idsArray,
+      userId,
+    });
+
+    return qb.softDelete().execute();
   }
 }
