@@ -10,14 +10,22 @@ import {
   UseGuards,
   Query,
   Delete,
+  Res, // Add this import for the response object
 } from '@nestjs/common';
-import { FilesService } from './files.service';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiTags,
+  ApiOperation, // Add this import for Swagger documentation
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileStorage } from './storage';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { UserId } from '../decorators/user-id.decorator';
 import { FileType } from './entities/file.entity';
+import { Response } from 'express'; // Add this import for the response object
+import { FilesService } from './files.service';
 
 @Controller('files')
 @ApiTags('files')
@@ -52,7 +60,7 @@ export class FilesController {
   create(
     @UploadedFile(
       new ParseFilePipe({
-        validators: [new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 })],
+        validators: [new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 })],
       }),
     )
     file: Express.Multer.File,
@@ -65,5 +73,20 @@ export class FilesController {
   remove(@UserId() userId: number, @Query('ids') ids: string) {
     // files?ids=1,2,7,8
     return this.filesService.remove(userId, ids);
+  }
+
+  @Get(':id/download')
+  async download(
+    @Res() res: Response,
+    @UserId() userId: number,
+    @Query('id') fileId: number,
+  ) {
+    const { fileStream, filename } = await this.filesService.getFileStream(
+      userId,
+      fileId,
+    );
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+    fileStream.pipe(res);
   }
 }

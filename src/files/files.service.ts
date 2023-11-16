@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FileEntity, FileType } from './entities/file.entity';
 import { Repository } from 'typeorm';
+import { createReadStream } from 'fs';
 
 @Injectable()
 export class FilesService {
@@ -36,8 +37,24 @@ export class FilesService {
     return qb.getMany();
   }
 
-  async findOne(id: number) {
-    return `This action returns a #${id} file`;
+  async getFileStream(userId: number, fileId: number) {
+    const file = await this.findOne(userId, fileId);
+
+    if (!file) {
+      throw new NotFoundException('File not found');
+    }
+
+    const path = `uploads/${file.filename}`;
+    const fileStream = createReadStream(path);
+
+    return { fileStream, filename: file.originalName };
+  }
+
+  async findOne(userId: number, fileId: number) {
+    const file = await this.repository.findOne({
+      where: { id: fileId, user: { id: userId } },
+    });
+    return file;
   }
 
   async remove(userId: number, ids: string) {
