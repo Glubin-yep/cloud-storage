@@ -8,23 +8,23 @@ import {
   MaxFileSizeValidator,
   Get,
   UseGuards,
-  Query,
   Delete,
-  Res, // Add this import for the response object
+  Res,
+  Param,
+  Query, 
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiConsumes,
-  ApiTags,
-  ApiOperation, // Add this import for Swagger documentation
+  ApiTags
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileStorage } from './storage';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { UserId } from '../decorators/user-id.decorator';
 import { FileType } from './entities/file.entity';
-import { Response } from 'express'; // Add this import for the response object
+import { Response } from 'express';
 import { FilesService } from './files.service';
 
 @Controller('files')
@@ -79,13 +79,11 @@ export class FilesController {
   async download(
     @Res() res: Response,
     @UserId() userId: number,
-    @Query('id') fileId: number,
+    @Param('id') fileId: number,
   ) {
-    const { fileStream, filename } = await this.filesService.getFileStream(
-      userId,
-      fileId,
-    );
-    res.setHeader('Content-Type', 'application/octet-stream');
+    const { fileStream, filename, fileType } =
+      await this.filesService.getFileStream(userId, fileId);
+    res.setHeader('Content-Type', fileType);
     res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
     fileStream.pipe(res);
   }

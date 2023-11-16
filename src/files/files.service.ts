@@ -43,11 +43,12 @@ export class FilesService {
     if (!file) {
       throw new NotFoundException('File not found');
     }
-
+    console.log(userId)
+    console.log(fileId)
     const path = `uploads/${file.filename}`;
     const fileStream = createReadStream(path);
 
-    return { fileStream, filename: file.originalName };
+    return { fileStream, filename: file.originalName, fileType: file.mimetype };
   }
 
   async findOne(userId: number, fileId: number) {
