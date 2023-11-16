@@ -13,7 +13,7 @@ export class FilesService {
   async create(file: Express.Multer.File, userId: number) {
     return this.repository.save({
       filename: file.filename,
-      originalName: file.originalname,
+      originalName: Buffer.from(file.originalname, 'latin1').toString('utf8'),
       size: file.size,
       mimetype: file.mimetype,
       user: { id: userId },
