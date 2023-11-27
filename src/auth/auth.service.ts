@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
@@ -29,21 +33,31 @@ export class AuthService {
 
   async register(dto: CreateUserDto) {
     try {
+      const existingUser = await this.userService.findByEmail(dto.email);
+      if (existingUser) {
+        throw new ConflictException();
+      }
+
       const userDate = await this.userService.create(dto);
 
       return {
         token: this.jwtService.sign({ id: userDate.id }),
+        id: userDate.id,
+        email: userDate.email,
       };
     } catch (err) {
-      console.log(err);
-      throw new ForbiddenException('Error during registration');
+      if (err instanceof ConflictException) {
+        console.error(err);
+        throw new ConflictException('Email already exists');
+      }
     }
   }
 
-  async login(user: UserEntity) {  
-
+  async login(user: UserEntity) {
     return {
-      token: this.jwtService.sign({id: user.id}),
+      token: this.jwtService.sign({ id: user.id }),
+      id: user.id,
+      email: user.email,
     };
   }
 }

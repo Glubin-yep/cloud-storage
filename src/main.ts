@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as express from 'express';
 import { join } from 'path';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: false });
@@ -12,6 +13,8 @@ async function bootstrap() {
     origin: true,
     exposedHeaders: ['Content-Disposition'],
   });
+
+  app.use(cookieParser());
 
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
 
