@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
@@ -58,6 +54,14 @@ export class AuthService {
       token: this.jwtService.sign({ id: user.id }),
       id: user.id,
       email: user.email,
+    };
+  }
+
+  async Logout() {
+    //rewrite auth placeholder to normal access/refresh logic
+
+    return {
+      message: 'Logout successful',
     };
   }
 }
