@@ -6,6 +6,7 @@ import {
   Body,
   Res,
   Get,
+  Param,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
@@ -39,5 +40,10 @@ export class AuthController {
   @Get('logout')
   async logout() {
     return this.authService.Logout();
+  }
+
+  @Get('validate/:token')  
+  async Validate(@Param('token') token: string) {
+    return this.authService.validateToken(token);
   }
 }

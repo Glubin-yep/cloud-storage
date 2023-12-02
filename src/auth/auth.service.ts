@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
@@ -11,6 +11,18 @@ export class AuthService {
     private userService: UsersService,
     private jwtService: JwtService,
   ) {}
+
+  async validateToken(token: string): Promise<any> {
+    try {
+      const isValid = await this.jwtService.verifyAsync(token);
+      return isValid;
+    } catch (error) {
+      return {
+        token: token,
+        statusCode: 401,
+      };
+    }
+  }
 
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.userService.findByEmail(email);
