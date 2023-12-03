@@ -8,21 +8,31 @@ import { UserEntity } from './users/entities/user.entity';
 import { FileEntity } from './files/entities/file.entity';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
+import { UserStatisticsEntity } from './users/entities/user_statistics.entity';
+import { SharedFileEntity } from './files/entities/shared_files.entity';
 
 @Module({
-  imports: [UsersModule, FilesModule,
-      ConfigModule.forRoot(),
-      TypeOrmModule.forRoot({
+  imports: [
+    UsersModule,
+    FilesModule,
+    ConfigModule.forRoot(),
+    TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
       port: Number(process.env.DB_PORT) || 5432,
       username: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [UserEntity, FileEntity],
+      entities: [
+        UserEntity,
+        FileEntity,
+        UserStatisticsEntity,
+        SharedFileEntity,
+      ],
       synchronize: true,
     }),
-      AuthModule,],
+    AuthModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

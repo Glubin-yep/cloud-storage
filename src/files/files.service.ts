@@ -3,24 +3,28 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FileEntity, FileType } from './entities/file.entity';
 import { Repository } from 'typeorm';
 import { createReadStream } from 'fs';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class FilesService {
   constructor(
     @InjectRepository(FileEntity)
     private repository: Repository<FileEntity>,
+    private usersService: UsersService, // Inject UsersService
   ) {}
 
   async create(file: Express.Multer.File, userId: number) {
+    await this.usersService.updateUserStatistics(userId, 1, file.size / 1024, 1, 0);
+
     return this.repository.save({
       filename: file.filename,
       originalName: Buffer.from(file.originalname, 'latin1').toString('utf8'),
-      size: file.size,
+      size: file.size / 1024,
       mimetype: file.mimetype,
       user: { id: userId },
     });
   }
-
+ 
   async findAll(userId: number, fileType: FileType) {
     const qb = this.repository.createQueryBuilder('file');
 
@@ -43,8 +47,8 @@ export class FilesService {
     if (!file) {
       throw new NotFoundException('File not found');
     }
-    console.log(userId)
-    console.log(fileId)
+
+    await this.usersService.updateUserStatistics(userId, 0, 0, 0, 1);
     const path = `uploads/${file.filename}`;
     const fileStream = createReadStream(path);
 
