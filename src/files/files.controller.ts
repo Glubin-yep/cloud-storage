@@ -11,19 +11,13 @@ import {
   Delete,
   Res,
   Param,
-  Query, 
+  Query,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiConsumes,
-  ApiTags
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileStorage } from './storage';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { UserId } from '../decorators/user-id.decorator';
-import { FileType } from './entities/file.entity';
 import { Response } from 'express';
 import { FilesService } from './files.service';
 
@@ -35,8 +29,8 @@ export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
   @Get()
-  findAll(@UserId() userId: number, @Query('type') fileType: FileType) {
-    return this.filesService.findAll(userId, fileType);
+  findAll(@UserId() userId: number) {
+    return this.filesService.findAll(userId);
   }
 
   @Post()

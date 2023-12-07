@@ -11,27 +11,30 @@ import { UserStatisticsEntity } from './entities/user_statistics.entity';
 export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
-    private repository: Repository<UserEntity>,
+    private userRepository: Repository<UserEntity>,
     @InjectRepository(UserStatisticsEntity)
     private userStatisticsRepository: Repository<UserStatisticsEntity>,
   ) {}
 
   async findByEmail(email: string) {
-    return this.repository.findOneBy({
+    return this.userRepository.findOneBy({
       email,
     });
   }
 
   async findById(id: number) {
-    return this.repository.findOneBy({
+    return this.userRepository.findOneBy({
       id,
     });
   }
 
   async create(dto: CreateUserDto) {
     const hashedPassword = await bcrypt.hash(dto.password, 10);
-    const user = this.repository.create({ ...dto, password: hashedPassword });
-    await this.repository.save(user);
+    const user = this.userRepository.create({
+      ...dto,
+      password: hashedPassword,
+    });
+    await this.userRepository.save(user);
 
     const userStatistics = this.userStatisticsRepository.create({
       user,
@@ -51,13 +54,16 @@ export class UsersService {
     const userStatistics = await this.userStatisticsRepository.findOne({
       where: { user: { id: userId } },
     });
-    console.log(usedStorage)
-    if (userStatistics) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    if (userStatistics && user) {
       userStatistics.totalFiles += totalFiles;
-      userStatistics.usedStorage += usedStorage;
+      user.usedStorage += usedStorage;
       userStatistics.uploadedFiles += uploadedFiles;
       userStatistics.downloadedFiles += downloadedFiles;
       await this.userStatisticsRepository.save(userStatistics);
+      await this.userRepository.save(user);
     }
   }
 
@@ -67,5 +73,16 @@ export class UsersService {
     });
 
     return userStatistics;
+  }
+
+  async getUserStorage(userId: number) {
+    const userStatistics = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    return {
+      maxStorage: userStatistics.maxStorage,
+      usedStorage: userStatistics.usedStorage,
+    };
   }
 }

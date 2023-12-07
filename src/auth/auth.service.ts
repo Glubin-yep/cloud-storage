@@ -1,15 +1,25 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserLoginEntity } from 'src/users/entities/user_logins.entity';
+import { Repository } from 'typeorm';
+import * as UAParser from 'ua-parser-js';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UsersService,
     private jwtService: JwtService,
+    @InjectRepository(UserLoginEntity)
+    private userLoginRepository: Repository<UserLoginEntity>,
   ) {}
 
   async validateToken(token: string): Promise<any> {
@@ -61,7 +71,22 @@ export class AuthService {
     }
   }
 
-  async login(user: UserEntity) {
+  async login(user: UserEntity, req: any) {
+    const userAgent = req.headers['user-agent'];
+
+    const parser = new UAParser(userAgent);
+    const deviceType = parser.getDevice().type || 'Desktop';
+
+    await this.userLoginRepository.save({
+      user: user,
+      ipAddress: req.ip,
+      browser: parser.getBrowser().name,
+      platform: parser.getOS().name,
+      deviceType: deviceType,
+      userAgent: userAgent,
+      loginTime: new Date(),
+    });
+
     return {
       token: this.jwtService.sign({ id: user.id }),
       id: user.id,

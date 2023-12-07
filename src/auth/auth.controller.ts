@@ -25,11 +25,11 @@ export class AuthController {
   @Post('login')
   @ApiBody({ type: CreateUserDto })
   async login(@Request() req, @Res() res: Response) {
-    const token = await this.authService.login(req.user as UserEntity);
+    const token = await this.authService.login(req.user as UserEntity, req);
 
     res.cookie('Authorization', token, { httpOnly: true });
 
-    return res.send( token );
+    return res.send(token);
   }
 
   @Post('register')
@@ -42,7 +42,7 @@ export class AuthController {
     return this.authService.Logout();
   }
 
-  @Get('validate/:token')  
+  @Get('validate/:token')
   async Validate(@Param('token') token: string) {
     return this.authService.validateToken(token);
   }

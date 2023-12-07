@@ -10,6 +10,8 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UserStatisticsEntity } from './users/entities/user_statistics.entity';
 import { SharedFileEntity } from './files/entities/shared_files.entity';
+import { FileActivityLogEntity } from './files/entities/fileActivityLogEntity';
+import { UserLoginEntity } from './users/entities/user_logins.entity';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { SharedFileEntity } from './files/entities/shared_files.entity';
         FileEntity,
         UserStatisticsEntity,
         SharedFileEntity,
+        FileActivityLogEntity,
+        UserLoginEntity,
       ],
       synchronize: true,
     }),

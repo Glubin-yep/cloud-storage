@@ -21,4 +21,10 @@ export class UsersController {
   getStatistic(@UserId() id: number) {
     return this.usersService.getUserStatistics(id);
   }
+
+  @Get('/storage')
+  @UseGuards(JwtAuthGuard)
+  getStorage(@UserId() id: number) {
+    return this.usersService.getUserStorage(id);
+  }
 }

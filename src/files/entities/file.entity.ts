@@ -8,11 +8,7 @@ import {
 } from 'typeorm';
 import { UserEntity } from '../../users/entities/user.entity';
 import { SharedFileEntity } from './shared_files.entity';
-
-export enum FileType {
-  PHOTOS = 'photos',
-  TRASH = 'trash',
-}
+import { FileActivityLogEntity } from './fileActivityLogEntity';
 
 @Entity('files')
 export class FileEntity {
@@ -30,6 +26,9 @@ export class FileEntity {
 
   @Column()
   mimetype: string;
+
+  @OneToMany(() => FileActivityLogEntity, (activityLog) => activityLog.file)
+  fileActivityLogs: FileActivityLogEntity[];
 
   @ManyToOne(() => UserEntity, (user) => user.files)
   user: UserEntity;

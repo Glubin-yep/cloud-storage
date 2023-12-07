@@ -1,42 +1,41 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FileEntity, FileType } from './entities/file.entity';
+import { FileEntity } from './entities/file.entity';
 import { Repository } from 'typeorm';
 import { createReadStream } from 'fs';
 import { UsersService } from 'src/users/users.service';
+import { FileActivityLogEntity } from './entities/fileActivityLogEntity';
 
 @Injectable()
 export class FilesService {
   constructor(
     @InjectRepository(FileEntity)
     private repository: Repository<FileEntity>,
-    private usersService: UsersService, // Inject UsersService
+    private usersService: UsersService,
+    @InjectRepository(FileActivityLogEntity)
+    private activityLogRepository: Repository<FileActivityLogEntity>,
   ) {}
 
   async create(file: Express.Multer.File, userId: number) {
-    await this.usersService.updateUserStatistics(userId, 1, file.size / 1024, 1, 0);
+    await this.usersService.updateUserStatistics(userId, 1, file.size, 1, 0);
 
-    return this.repository.save({
+    const savedFile = await this.repository.save({
       filename: file.filename,
       originalName: Buffer.from(file.originalname, 'latin1').toString('utf8'),
-      size: file.size / 1024,
+      size: file.size,
       mimetype: file.mimetype,
       user: { id: userId },
     });
+
+    await this.logFileActivity(userId, savedFile.id, 'create');
+
+    return savedFile;
   }
- 
-  async findAll(userId: number, fileType: FileType) {
+
+  async findAll(userId: number) {
     const qb = this.repository.createQueryBuilder('file');
 
     qb.where('file.userId = :userId', { userId });
-
-    if (fileType === FileType.PHOTOS) {
-      qb.andWhere('file.mimetype ILIKE :type', { type: '%image%' });
-    }
-
-    if (fileType === FileType.TRASH) {
-      qb.withDeleted().andWhere('file.deletedAt IS NOT NULL');
-    }
 
     return qb.getMany();
   }
@@ -49,6 +48,8 @@ export class FilesService {
     }
 
     await this.usersService.updateUserStatistics(userId, 0, 0, 0, 1);
+    await this.logFileActivity(userId, fileId, 'download');
+
     const path = `uploads/${file.filename}`;
     const fileStream = createReadStream(path);
 
@@ -72,6 +73,22 @@ export class FilesService {
       userId,
     });
 
+    idsArray.forEach(async (element) => {
+      await this.logFileActivity(userId, Number(element), 'delete');
+    });
+
     return qb.softDelete().execute();
+  }
+
+  private async logFileActivity(
+    userId: number,
+    fileId: number,
+    action: string,
+  ) {
+    await this.activityLogRepository.save({
+      user: { id: userId },
+      file: { id: fileId },
+      action,
+    });
   }
 }
