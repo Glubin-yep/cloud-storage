@@ -9,6 +9,9 @@ import { FileActivityLogEntity } from './entities/fileActivityLogEntity';
 @Module({
   controllers: [FilesController],
   providers: [FilesService],
-  imports: [TypeOrmModule.forFeature([FileEntity, FileActivityLogEntity]), UsersModule], 
+  imports: [
+    TypeOrmModule.forFeature([FileEntity, FileActivityLogEntity]),
+    UsersModule,
+  ],
 })
 export class FilesModule {}

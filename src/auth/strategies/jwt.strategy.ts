@@ -4,25 +4,24 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy){
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(private readonly userService: UsersService) {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: process.env.SECRET_KEY,
+    });
+  }
 
-    constructor(private readonly userService: UsersService){
-        super({
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-            ignoreExpiration: false,
-            secretOrKey: process.env.SECRET_KEY,
-        })
+  async validate(payload: any) {
+    const user = await this.userService.findById(+payload.id);
+
+    if (!user) {
+      throw new UnauthorizedException('You do not have access');
     }
 
-    async validate(payload: any){
-        const user = await this. userService.findById(+payload.id);
-        
-        if(!user){
-            throw new UnauthorizedException("You do not have access");
-        }
-
-        return{
-            id:user.id
-        }
-    }
+    return {
+      id: user.id,
+    };
+  }
 }

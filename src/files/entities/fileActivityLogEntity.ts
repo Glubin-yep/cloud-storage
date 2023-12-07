@@ -1,4 +1,10 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { FileEntity } from './file.entity';
 import { UserEntity } from '../../users/entities/user.entity';
 import { SharedFileEntity } from './shared_files.entity';
@@ -14,12 +20,15 @@ export class FileActivityLogEntity {
   @ManyToOne(() => FileEntity, (file) => file.fileActivityLogs)
   file: FileEntity;
 
-  @ManyToOne(() => SharedFileEntity, (sharedFile) => sharedFile.fileActivityLogs)
-sharedFile: SharedFileEntity;
+  @ManyToOne(
+    () => SharedFileEntity,
+    (sharedFile) => sharedFile.fileActivityLogs,
+  )
+  sharedFile: SharedFileEntity;
 
   @Column()
   action: string;
-  
+
   @CreateDateColumn()
   createdOn: Date;
 }
