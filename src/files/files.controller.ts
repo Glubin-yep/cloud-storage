@@ -12,6 +12,7 @@ import {
   Res,
   Param,
   Query,
+  Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -29,8 +30,24 @@ export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
   @Get()
-  findAll(@UserId() userId: number) {
-    return this.filesService.findAll(userId);
+  async findAll(
+    @UserId() userId: number,
+    @Query('sharedToken') sharedToken: string,
+    @Res() res: Response,
+  ) {
+    if (sharedToken) {
+      const fileId = await this.filesService.getFileIdBySharedToken(
+        sharedToken,
+      );
+      if (fileId) {
+        return res.redirect(307, `/files/${fileId}/download`);
+      } else {
+        return res.status(404).send('File not found or shared link expired');
+      }
+    } else {
+      const files = await this.filesService.findAll(userId);
+      return res.json(files);
+    }
   }
 
   @Post()
@@ -80,5 +97,13 @@ export class FilesController {
     res.setHeader('Content-Type', fileType);
     res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
     fileStream.pipe(res);
+  }
+
+  @Get(':fileId/getSharedLink/')
+  async getSharedLink(
+    @UserId() userId: number,
+    @Param('fileId') fileId: number,
+  ) {
+    return this.filesService.getSharedLink(userId, fileId);
   }
 }

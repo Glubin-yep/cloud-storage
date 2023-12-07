@@ -5,8 +5,9 @@ import { Repository } from 'typeorm';
 import { createReadStream } from 'fs';
 import { UsersService } from 'src/users/users.service';
 import { FileActivityLogEntity } from './entities/fileActivityLogEntity';
+import { JwtService } from '@nestjs/jwt';
+import { SharedFileEntity } from './entities/shared_files.entity';
 
-@Injectable()
 export class FilesService {
   constructor(
     @InjectRepository(FileEntity)
@@ -14,6 +15,9 @@ export class FilesService {
     private usersService: UsersService,
     @InjectRepository(FileActivityLogEntity)
     private activityLogRepository: Repository<FileActivityLogEntity>,
+    @InjectRepository(SharedFileEntity)
+    private sharedFileRepository: Repository<SharedFileEntity>,
+    private jwtService: JwtService,
   ) {}
 
   async create(file: Express.Multer.File, userId: number) {
@@ -57,6 +61,7 @@ export class FilesService {
   }
 
   async findOne(userId: number, fileId: number) {
+    console.log(fileId);
     const file = await this.repository.findOne({
       where: { id: fileId, user: { id: userId } },
     });
@@ -78,6 +83,47 @@ export class FilesService {
     });
 
     return qb.softDelete().execute();
+  }
+
+  async getSharedLink(userId: number, fileId: number) {
+    const file = await this.findOne(userId, fileId);
+    console.log(file);
+    if (!file) {
+      throw new NotFoundException('File not found');
+    }
+
+    const sharedToken = this.jwtService.sign({
+      userId: userId,
+      fileId: fileId,
+    });
+
+    await this.sharedFileRepository.save({
+      token: sharedToken,
+      file: file,
+      sharedWith: { id: userId },
+    });
+
+    return sharedToken;
+  }
+
+  async getFileIdBySharedToken(token: string) {
+    try {
+      const decodedToken = this.jwtService.verify(token);
+      console.log(decodedToken)
+      const sharedFile = await this.sharedFileRepository.findOne({
+        select: ['file'], 
+        where: { token: decodedToken.token },
+        relations: ['file'], 
+      });
+
+      if (sharedFile && sharedFile.file) {
+        return sharedFile.file.id;
+      } else {
+        return null; 
+      }
+    } catch (error) {
+      return null; 
+    }
   }
 
   private async logFileActivity(
