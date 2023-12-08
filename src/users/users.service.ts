@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { UserStatisticsEntity } from './entities/user_statistics.entity';
+import { UserLoginEntity } from './entities/user_logins.entity';
 
 @Injectable()
 export class UsersService {
@@ -14,6 +15,8 @@ export class UsersService {
     private userRepository: Repository<UserEntity>,
     @InjectRepository(UserStatisticsEntity)
     private userStatisticsRepository: Repository<UserStatisticsEntity>,
+    @InjectRepository(UserLoginEntity)
+    private userLoginRepository: Repository<UserStatisticsEntity>,
   ) {}
 
   async findByEmail(email: string) {
@@ -84,5 +87,13 @@ export class UsersService {
       maxStorage: userStatistics.maxStorage,
       usedStorage: userStatistics.usedStorage,
     };
+  }
+
+  async getActivity(userId: number) {
+    const userActivity = await this.userLoginRepository.find({
+      where: { user: { id: userId } },
+    });
+
+    return userActivity;
   }
 }

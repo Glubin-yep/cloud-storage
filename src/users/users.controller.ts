@@ -27,4 +27,10 @@ export class UsersController {
   getStorage(@UserId() id: number) {
     return this.usersService.getUserStorage(id);
   }
+
+  @Get('/activity')
+  @UseGuards(JwtAuthGuard)
+  getActivity(@UserId() id: number) {
+    return this.usersService.getActivity(id);
+  }
 }
