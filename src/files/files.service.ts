@@ -61,7 +61,6 @@ export class FilesService {
   }
 
   async findOne(userId: number, fileId: number) {
-    console.log(fileId);
     const file = await this.repository.findOne({
       where: { id: fileId, user: { id: userId } },
     });
@@ -109,21 +108,39 @@ export class FilesService {
   async getFileIdBySharedToken(token: string) {
     try {
       const decodedToken = this.jwtService.verify(token);
-      console.log(decodedToken)
+      console.log(decodedToken);
       const sharedFile = await this.sharedFileRepository.findOne({
-        select: ['file'], 
+        select: ['file'],
         where: { token: decodedToken.token },
-        relations: ['file'], 
+        relations: ['file'],
       });
 
       if (sharedFile && sharedFile.file) {
         return sharedFile.file.id;
       } else {
-        return null; 
+        return null;
       }
     } catch (error) {
-      return null; 
+      return null;
     }
+  }
+
+  async getHistory(userId: number) {
+    const activityLogs = await this.activityLogRepository.find({
+      where: { user: { id: userId } },
+      relations: ['file'],
+    });
+    console.log(activityLogs);
+    return activityLogs.map((log) => {
+      return {
+        id: log.id,
+        fileId: log.file ? log.file.id : null,
+        fileName: log.file ? log.file.originalName : null, // Include file name
+
+        action: log.action,
+        createdOn: log.createdOn,
+      };
+    });
   }
 
   private async logFileActivity(

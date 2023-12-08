@@ -86,6 +86,13 @@ export class FilesController {
     return this.filesService.remove(userId, ids);
   }
 
+  @Get('getHistory/')
+  async getHistory(
+    @UserId() userId: number
+  ) {
+    return this.filesService.getHistory(userId);
+  }
+
   @Get(':id/download')
   async download(
     @Res() res: Response,
