@@ -6,9 +6,9 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UserEntity } from '../../users/entities/user.entity';
 import { FileEntity } from './file.entity';
-import { FileActivityLogEntity } from './fileActivityLogEntity';
+import { FileActivityLogEntity } from './file-activity-log.entity';
+import { UserEntity } from '@/users/entities/user.entity';
 
 @Entity('shared_files')
 export class SharedFileEntity {

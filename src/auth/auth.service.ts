@@ -1,79 +1,66 @@
 import {
-  ConflictException,
   Injectable,
   UnauthorizedException,
+  ConflictException,
 } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
-import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { UserEntity } from 'src/users/entities/user.entity';
+import { CreateUserDto } from '@/users/dto/create-user.dto';
+import { UserResponseDto } from '@/users/dto/user-response.dto';
+import { UserLoginEntity } from '@/users/entities/user-logins.entity';
+import { UserEntity } from '@/users/entities/user.entity';
+import { UsersService } from '@/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserLoginEntity } from 'src/users/entities/user_logins.entity';
 import { Repository } from 'typeorm';
+import { PasswordService } from './services/password.service';
 import * as UAParser from 'ua-parser-js';
-
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UsersService,
     private jwtService: JwtService,
+    private passwordService: PasswordService,
     @InjectRepository(UserLoginEntity)
     private userLoginRepository: Repository<UserLoginEntity>,
   ) {}
 
   async validateToken(token: string): Promise<any> {
     try {
-      const isValid = await this.jwtService.verifyAsync(token);
-      return isValid;
+      return await this.jwtService.verifyAsync(token);
     } catch (error) {
-      return {
-        token: token,
-        statusCode: 401,
-      };
+      throw new UnauthorizedException('Invalid token');
     }
   }
 
-  async validateUser(email: string, password: string): Promise<any> {
+  async validateUser(
+    email: string,
+    password: string,
+  ): Promise<UserResponseDto> {
     const user = await this.userService.findByEmail(email);
 
-    if (user) {
-      const passwordMatch = await bcrypt.compare(password, user.password);
-
-      if (passwordMatch) {
-        const { password: hashedPassword, ...result } = user;
-        return result;
-      }
+    if (user && (await this.passwordService.compare(password, user.password))) {
+      return new UserResponseDto(user);
     }
 
     return null;
   }
 
   async register(dto: CreateUserDto) {
-    try {
-      const existingUser = await this.userService.findByEmail(dto.email);
-      if (existingUser) {
-        throw new ConflictException();
-      }
+    const existingUser = await this.userService.findByEmail(dto.email);
 
-      const userDate = await this.userService.create(dto);
-
-      return {
-        token: this.jwtService.sign({ id: userDate.id }),
-        id: userDate.id,
-        email: userDate.email,
-      };
-    } catch (err) {
-      if (err instanceof ConflictException) {
-        console.error(err);
-        throw new ConflictException('Email already exists');
-      }
+    if (existingUser) {
+      throw new ConflictException('Email already exists');
     }
+
+    const user = await this.userService.create(dto);
+
+    return {
+      token: this.jwtService.sign({ id: user.id }),
+      ...new UserResponseDto(user),
+    };
   }
 
   async login(user: UserEntity, req: any) {
     const userAgent = req.headers['user-agent'];
-
     const parser = new UAParser(userAgent);
     const deviceType = parser.getDevice().type || 'Desktop';
 
@@ -89,14 +76,12 @@ export class AuthService {
 
     return {
       token: this.jwtService.sign({ id: user.id }),
-      id: user.id,
-      email: user.email,
+      ...new UserResponseDto(user),
     };
   }
 
-  async Logout() {
+  async logout() {
     //rewrite auth placeholder to normal access/refresh logic
-
     return {
       message: 'Logout successful',
     };

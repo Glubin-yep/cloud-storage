@@ -1,7 +1,6 @@
 import {
   Controller,
   Post,
-  Body,
   UseInterceptors,
   UploadedFile,
   ParseFilePipe,
@@ -12,15 +11,14 @@ import {
   Res,
   Param,
   Query,
-  Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { fileStorage } from './storage';
-import { JwtAuthGuard } from '../auth/guards/jwt.guard';
-import { UserId } from '../decorators/user-id.decorator';
 import { Response } from 'express';
+import { JwtAuthGuard } from '@/auth/guards/jwt.guard';
+import { UserId } from '@/decorators/user-id.decorator';
 import { FilesService } from './files.service';
+import { fileStorage } from './storage';
 
 @Controller('files')
 @ApiTags('files')
@@ -81,15 +79,12 @@ export class FilesController {
   }
 
   @Delete()
-  remove(@UserId() userId: number, @Query('ids') ids: string) {
-    // files?ids=1,2,7,8
-    return this.filesService.remove(userId, ids);
+  remove(@UserId() userId: number, @Query('id') id: number) {
+    return this.filesService.remove(userId, id);
   }
 
   @Get('getHistory/')
-  async getHistory(
-    @UserId() userId: number
-  ) {
+  async getHistory(@UserId() userId: number) {
     return this.filesService.getHistory(userId);
   }
 

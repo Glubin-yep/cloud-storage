@@ -8,11 +8,10 @@ import { UserEntity } from './users/entities/user.entity';
 import { FileEntity } from './files/entities/file.entity';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
-import { UserStatisticsEntity } from './users/entities/user_statistics.entity';
-import { SharedFileEntity } from './files/entities/shared_files.entity';
-import { FileActivityLogEntity } from './files/entities/fileActivityLogEntity';
-import { UserLoginEntity } from './users/entities/user_logins.entity';
-
+import { UserStatisticsEntity } from './users/entities/user-statistics.entity';
+import { SharedFileEntity } from './files/entities/shared-files.entity';
+import { FileActivityLogEntity } from './files/entities/file-activity-log.entity';
+import { UserLoginEntity } from './users/entities/user-logins.entity';
 @Module({
   imports: [
     UsersModule,

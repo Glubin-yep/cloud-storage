@@ -8,13 +8,12 @@ import {
   Get,
   Param,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { AuthService } from './auth.service';
-import { UserEntity } from 'src/users/entities/user.entity';
 import { LocalAuthGuard } from './guards/local.guard';
 import { Response } from 'express';
+import { CreateUserDto } from '@/users/dto/create-user.dto';
+import { UserEntity } from '@/users/entities/user.entity';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -39,7 +38,7 @@ export class AuthController {
 
   @Get('logout')
   async logout() {
-    return this.authService.Logout();
+    return this.authService.logout();
   }
 
   @Get('validate/:token')

@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { FileEntity } from './file.entity';
 import { UserEntity } from '../../users/entities/user.entity';
-import { SharedFileEntity } from './shared_files.entity';
+import { SharedFileEntity } from './shared-files.entity';
 
 @Entity('file_activity_log')
 export class FileActivityLogEntity {

@@ -43,6 +43,7 @@
     "ua-parser-js": "^1.0.37"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-decorators": "^7.23.7",
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",

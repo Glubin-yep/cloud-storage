@@ -1,14 +1,14 @@
 import {
-  Column,
-  DeleteDateColumn,
   Entity,
-  ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToOne,
+  DeleteDateColumn,
 } from 'typeorm';
-import { UserEntity } from '../../users/entities/user.entity';
-import { SharedFileEntity } from './shared_files.entity';
-import { FileActivityLogEntity } from './fileActivityLogEntity';
+import { UserEntity } from '@/users/entities/user.entity';
+import { FileActivityLogEntity } from './file-activity-log.entity';
+import { SharedFileEntity } from './shared-files.entity';
 
 @Entity('files')
 export class FileEntity {

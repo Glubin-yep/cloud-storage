@@ -1,9 +1,9 @@
-import { FileEntity } from 'src/files/entities/file.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { UserStatisticsEntity } from './user_statistics.entity';
-import { SharedFileEntity } from 'src/files/entities/shared_files.entity';
-import { FileActivityLogEntity } from 'src/files/entities/fileActivityLogEntity';
-import { UserLoginEntity } from './user_logins.entity';
+import { FileActivityLogEntity } from '@/files/entities/file-activity-log.entity';
+import { FileEntity } from '@/files/entities/file.entity';
+import { SharedFileEntity } from '@/files/entities/shared-files.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { UserLoginEntity } from './user-logins.entity';
+import { UserStatisticsEntity } from './user-statistics.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -17,7 +17,10 @@ export class UserEntity {
   password: string;
 
   @Column()
-  fullName: string;
+  firstName: string;
+
+  @Column()
+  lastName: string;
 
   @Column({ default: 0, type: 'int' })
   usedStorage: number;
