@@ -30,10 +30,17 @@ export class UsersService {
     });
   }
 
+  async findByOAuthGithubId(OAuthGithubId: number) {
+    return this.userRepository.findOneBy({
+      OAuthGithubId,
+    });
+  }
+
   async create(dto: CreateUserDto) {
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     const user = this.userRepository.create({
       ...dto,
+      OAuthGithubId: dto.OAuthGithubId ? Number(dto.OAuthGithubId) : null,
       password: hashedPassword,
     });
     await this.userRepository.save(user);

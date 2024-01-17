@@ -4,17 +4,23 @@ export class CreateUserDto {
   @ApiProperty({
     default: 'test@gamil.com',
   })
-  email: string;
+  email: string | null;
   @ApiProperty({
     default: 'testaccount',
   })
-  firstName: string;
+  firstName: string | null;
   @ApiProperty({
     default: '12345',
   })
-  lastName: string;
+  lastName: string | null;
   @ApiProperty({
     default: '12345',
   })
-  password: string;
+  password: string | null;
+
+  @ApiProperty({
+    default: null,
+    nullable: true,
+  })
+  OAuthGithubId?: number | null;
 }

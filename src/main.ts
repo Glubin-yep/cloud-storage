@@ -6,11 +6,15 @@ import * as express from 'express';
 import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: false });
+  const app = await NestFactory.create(AppModule);
 
   app.enableCors({
     credentials: true,
-    origin: true,
+    origin: [
+      'http://localhost:5173',
+      'https://profound-moxie-722b74.netlify.app',
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     exposedHeaders: ['Content-Disposition'],
   });
 

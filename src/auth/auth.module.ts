@@ -10,6 +10,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { UserLoginEntity } from 'src/users/entities/user-logins.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PasswordService } from './services/password.service';
+import { GithubStrategy } from './strategies/github.strategy ';
 
 @Module({
   imports: [
@@ -28,6 +29,12 @@ import { PasswordService } from './services/password.service';
     PassportModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy, PasswordService],
+  providers: [
+    AuthService,
+    PasswordService,
+    LocalStrategy,
+    JwtStrategy,
+    GithubStrategy,
+  ],
 })
 export class AuthModule {}

@@ -59,14 +59,14 @@ export class AuthService {
     };
   }
 
-  async login(user: UserEntity, req: any) {
+  async login(user: UserEntity, req: Request) {
     const userAgent = req.headers['user-agent'];
     const parser = new UAParser(userAgent);
     const deviceType = parser.getDevice().type || 'Desktop';
 
     await this.userLoginRepository.save({
       user: user,
-      ipAddress: req.ip,
+      // ipAddress: req.ip,
       browser: parser.getBrowser().name,
       platform: parser.getOS().name,
       deviceType: deviceType,
@@ -81,9 +81,46 @@ export class AuthService {
   }
 
   async logout() {
-    //rewrite auth placeholder to normal access/refresh logic
     return {
       message: 'Logout successful',
+    };
+  }
+
+  async Githublogin(req: Request, gitUser: any) {
+    const existingUser = await this.userService.findByOAuthGithubId(gitUser.id);
+    if (!existingUser) {
+      const dto: CreateUserDto = {
+        OAuthGithubId: gitUser.id,
+        email: gitUser.email,
+        firstName: '',
+        lastName: '',
+        password: '',
+      };
+      const user = await this.userService.create(dto);
+
+      return {
+        token: this.jwtService.sign({ id: user.id }),
+        ...new UserResponseDto(user),
+      };
+    }
+
+    const userAgent = req.headers['user-agent'];
+    const parser = new UAParser(userAgent);
+    const deviceType = parser.getDevice().type || 'Desktop';
+
+    await this.userLoginRepository.save({
+      //user: user,
+      //ipAddress: req.ip,
+      browser: parser.getBrowser().name,
+      platform: parser.getOS().name,
+      deviceType: deviceType,
+      userAgent: userAgent,
+      loginTime: new Date(),
+    });
+
+    return {
+      token: this.jwtService.sign({ id: existingUser.id }),
+      ...new UserResponseDto(gitUser),
     };
   }
 }
